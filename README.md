@@ -1,5 +1,7 @@
 # market-app
 Super Market API Django Project.
 
-docker-compose run --rm app sh -c "flake8"
-
+docker-compose build  // builds the image.
+docker-compose run --rm app sh -c "flake8"  // Check the app with flake8 linting tool.
+docker-compose up  // first up the services.
+docker-compose run --rm app sh -c "django-admin startproject app ." // create a new project.
