@@ -21,13 +21,13 @@ class UserSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         """Update and return user."""
-        password = validated_data.pop('password', None)  # Pop the password from the dictionary and use None as the the default value
+        password = validated_data.pop('password', None)  # Pop the password from the dictionary and use None as the the default value # noqa: E501
         user = super().update(instance, validated_data)
 
         if password:
             user.set_password(password)
-            user.save
-        
+            user.save()
+
         return user
 
 

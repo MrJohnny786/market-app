@@ -2,12 +2,11 @@
 Tests for the user API.
 """
 
-from django.test import TestCase
 from django.contrib.auth import get_user_model
+from django.test import TestCase
 from django.urls import reverse
-
-from rest_framework.test import APIClient
 from rest_framework import status
+from rest_framework.test import APIClient
 
 CREATE_USER_URL = reverse("user:create")
 TOKEN_URL = reverse("user:token")
@@ -30,7 +29,7 @@ class PublicUserApiTests(TestCase):
         payload = {
             'email': 'test@example.com',
             'password': 'testpass123',
-            'name': 'Test name',
+            'name': 'Test Name',
         }
 
         res = self.client.post(CREATE_USER_URL, payload)
@@ -45,16 +44,16 @@ class PublicUserApiTests(TestCase):
         payload = {
             'email': 'test@example.com',
             'password': 'testpass123',
-            'name': 'Test name',
+            'name': 'Test Name',
         }
 
         create_user(**payload)
-        res = self.client.post(CREATE_USER_URL)
+        res = self.client.post(CREATE_USER_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_password_too_short_error(self):
-        """Test an error is returned if the password is less than 5 characters."""
+        """Test an error is returned if the password is less than 5 characters."""  # noqa: E501
         payload = {
             'email': 'test@example.com',
             'password': 'tes',
@@ -66,7 +65,6 @@ class PublicUserApiTests(TestCase):
         user_exists = get_user_model().objects.filter(
             email=payload['email']
         ).exists()
-        print(user_exists)
         self.assertFalse(user_exists)
 
     def test_create_token_for_user(self):
@@ -91,7 +89,14 @@ class PublicUserApiTests(TestCase):
         create_user(email='test@example.com', password='goodpass')
         payload = {'email': 'test@example.com', 'password': 'badpass'}
         res = self.client.post(TOKEN_URL, payload)
-        self.assertNotIn('token', payload)
+        self.assertNotIn('token', res.data)
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_token_email_not_found(self):
+        """Test error returned if user not found for given email."""
+        payload = {'email': 'test@example.com', 'password': 'pass123'}
+        res = self.client.post(TOKEN_URL, payload)
+        self.assertNotIn('token', res.data)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_token_blank_password(self):
@@ -141,8 +146,8 @@ class PrivateUserApiTests(TestCase):
         payload = {'name': 'Updated name', 'password': 'newpassword123'}
 
         res = self.client.patch(ME_URL, payload)
-
+        
         self.user.refresh_from_db()
         self.assertEqual(self.user.name, payload['name'])
-        # self.assertTrue(self.user.check_password(payload['password']))
+        self.assertTrue(self.user.check_password(payload['password']))
         self.assertEqual(res.status_code, status.HTTP_200_OK)
